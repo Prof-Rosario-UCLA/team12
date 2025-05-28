@@ -15,6 +15,7 @@ dist/
 .DS_Store
 coverage/
 *.log
+public/wasm/
 
 # Editor directories and files
 .vscode/*
