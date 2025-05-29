@@ -1,53 +1,56 @@
-import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import DarkModeToggle from './components/Layout/DarkModeToggle';
-import CookieBanner from './components/Layout/CookieBanner';
-import Login from './components/Auth/Login';
-import Register from './components/Auth/Register';
-import PantryList from './components/Pantry/PantryList';
-import SearchPage from './components/Search/SearchPage';
-import ShoppingListComponent from './components/ShoppingList/ShoppingList';
-import FavoriteRecipes from './components/Favorites/FavoriteRecipes';
-import RecipeDetailPage from './components/Search/RecipeDetailPage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Header from './components/Header';
+import Dashboard from './pages/Dashboard';
+import PantryPage from './pages/PantryPage';
+import RecipesPage from './pages/RecipesPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import './App.css';
 
-// Placeholder components for routes
-// const Pantry = () => <div>Pantry Page</div>;
-// const Search = () => <div>Search Page</div>;
-// const Favorites = () => <div>Favorites Page</div>;
-// const ShoppingList = () => <div>Shopping List Page</div>;
-// const RecipeDetail = () => <div>Recipe Detail Page</div>;
+function AppContent() {
+  const { user, loading } = useAuth();
 
-const App: React.FC = () => {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="py-4 px-6 bg-blue-600 text-white shadow-md flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Pantry Pal</h1>
-        <DarkModeToggle />
-      </header>
-      <nav className="bg-blue-500 text-white p-4">
-        <ul className="flex space-x-4">
-          <li><Link to="/login">Login</Link></li>
-          <li><Link to="/register">Register</Link></li>
-          <li><Link to="/pantry">Pantry</Link></li>
-          <li><Link to="/search">Search</Link></li>
-          <li><Link to="/favorites">Favorites</Link></li>
-          <li><Link to="/shopping-list">Shopping List</Link></li>
-        </ul>
-      </nav>
-      <main className="flex-1 p-6">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/pantry" element={<PantryList />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/favorites" element={<FavoriteRecipes />} />
-          <Route path="/shopping-list" element={<ShoppingListComponent />} />
-          <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-        </Routes>
-      </main>
-      <CookieBanner />
+    <div className="min-h-screen bg-gray-50">
+      {user && <Header />}
+      <Routes>
+        {user ? (
+          <>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/pantry" element={<PantryPage />} />
+            <Route path="/recipes" element={<RecipesPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        ) : (
+          <>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        )}
+      </Routes>
     </div>
   );
-};
+}
 
-export default App; 
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
