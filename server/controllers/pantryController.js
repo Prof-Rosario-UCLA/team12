@@ -1,6 +1,13 @@
 import PantryItem from '../models/PantryItem.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import sanitizeHtml from 'sanitize-html';
+
+// sanitization
+const sanitizeOptions = {
+    allowedTags: [],
+    allowedAttributes: {},
+};
 
 // @desc    Get all pantry items for a user
 // @route   GET /api/pantry
@@ -19,7 +26,11 @@ export const getPantryItems = async (req, res) => {
 // @route   POST /api/pantry
 // @access  Private
 export const addPantryItem = async (req, res) => {
-    const { name, quantity, unit, expirationDate } = req.body;
+    let { name, quantity, unit, expirationDate } = req.body;
+
+    if (name) name = sanitizeHtml(name, sanitizeOptions);
+    if (unit) unit = sanitizeHtml(unit, sanitizeOptions);
+
     if (!name || typeof name !== 'string') {
         return res.status(400).json({ message: 'Name is required and must be a string' });
     }
@@ -86,16 +97,16 @@ export const getPantryItemById = async (req, res) => {
 // @route   PUT /api/pantry/:id
 // @access  Private
 export const updatePantryItem = async (req, res) => {
-    const { name, quantity, unit, expirationDate } = req.body;
+    let { name, quantity, unit, expirationDate } = req.body;
+
+    if (name !== undefined) name = sanitizeHtml(name, sanitizeOptions);
+    if (unit !== undefined) unit = sanitizeHtml(unit, sanitizeOptions);
 
     if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
         return res.status(400).json({ message: 'Name must be a non-empty string if provided' });
     }
     if (quantity !== undefined && (typeof quantity !== 'number' || quantity <= 0)) {
         return res.status(400).json({ message: 'Quantity must be a positive number if provided' });
-    }
-    if (unit !== undefined && (typeof unit !== 'string' || unit.trim() === '')) {
-        return res.status(400).json({ message: 'Unit must be a non-empty string if provided' });
     }
     if (expirationDate !== undefined && expirationDate !== null && isNaN(new Date(expirationDate).getTime())) {
         return res.status(400).json({ message: 'Invalid expiration date format if provided' });
