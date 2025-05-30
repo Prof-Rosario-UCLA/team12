@@ -40,6 +40,7 @@ export const registerUser = async (req, res) => {
             res.status(201).json({
                 _id: user._id,
                 username: user.username,
+                token: token
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -71,6 +72,7 @@ export const loginUser = async (req, res) => {
             res.json({
                 _id: user._id,
                 username: user.username,
+                token: token
             });
         } else {
             res.status(401).json({ message: 'Invalid username or password' });
@@ -89,4 +91,16 @@ export const logoutUser = (req, res) => {
         expires: new Date(0),
     });
     res.status(200).json({ message: 'User logged out' });
+};
+
+// @desc    Get user profile
+// @route   GET /api/auth/me
+// @access  Private
+export const getMe = async (req, res) => {
+    // req.user is set by the protect middleware
+    if (req.user) {
+        res.status(200).json(req.user);
+    } else {
+        res.status(404).json({ message: 'User not found' }); 
+    }
 }; 

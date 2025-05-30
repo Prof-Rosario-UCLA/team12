@@ -13,9 +13,93 @@ interface AuthContextType {
   register: (username: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const API_BASE_URL = 'http://localhost:5001/api';
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserFromToken = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        try {
+          const { data } = await axios.get<User>(`${API_BASE_URL}/auth/me`);
+          setUser(data);
+        } catch (error) {
+          console.error('Failed to load user from token', error);
+          localStorage.removeItem('token');
+          delete axios.defaults.headers.common['Authorization'];
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    loadUserFromToken();
+  }, []);
+
+  const login = async (username: string, password: string) => {
+    // console.log('[AuthContext] login function called with:', username);
+    try {
+      // console.log('[AuthContext] Attempting axios.post to /api/auth/login');
+      const response = await axios.post<{ _id: string; username: string; token: string }>(
+        `${API_BASE_URL}/auth/login`,
+        {
+          username,
+          password,
+        }
+      );
+      // console.log('[AuthContext] axios.post successful, response data:', response.data);
+      
+      const { token, ...userData } = response.data;
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser(userData as User);
+      // console.log('[AuthContext] setUser called with:', userData);
+    } catch (error: any) {
+      // console.error('[AuthContext] Error in login function:', error);
+      // console.error('[AuthContext] Error response data:', error.response?.data);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
+  };
+
+  const register = async (username: string, password: string) => {
+    try {
+      const response = await axios.post<{ _id: string; username: string; token: string }>(
+        `${API_BASE_URL}/auth/register`,
+        {
+          username,
+          password,
+        }
+      );
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+    // axios.post(`${API_BASE_URL}/auth/logout`).catch(err => console.error('Logout API call failed', err));
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, register, logout, loading, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -23,80 +107,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const API_BASE_URL = 'http://localhost:5001/api';
-
-  axios.defaults.withCredentials = true;
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {        
-        const response = await axios.get(`${API_BASE_URL}/auth/me`);
-        setUser(response.data);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const login = async (username: string, password: string) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        username,
-        password,
-      });
-      setUser(response.data.user);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
-    }
-  };
-
-  const register = async (username: string, password: string) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, {
-        username,
-        password,
-      });
-      setUser(response.data.user);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/auth/logout`);
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-    }
-  };
-
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading,
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
 }; 
