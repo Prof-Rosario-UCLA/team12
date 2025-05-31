@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import pantryRoutes from './routes/pantry.js';
 import recipeRoutes from './routes/recipes.js';
 import aiRoutes from './routes/ai.js';
+import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
 
 dotenv.config();
@@ -33,7 +34,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Temporarily disable CSRF for development
 // const csrfProtection = csurf({ 
 //   cookie: true,
 //   ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
@@ -57,6 +57,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/pantry', pantryRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello from Pantry Pal Server!');

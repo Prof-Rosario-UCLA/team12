@@ -14,16 +14,35 @@ import {
 // @route   GET /api/recipes/search
 // @access  Public
 export const searchRecipes = async (req, res) => {
-    const { query, cuisine, diet, intolerances, number } = req.query;
-    const cacheKey = `recipes_search_${JSON.stringify(req.query)}`;
+    const { query, ingredients, cuisine, diet, intolerances, number } = req.query;
+    
+    const cacheKeyObject = {
+        query,
+        ingredients,
+        cuisine,
+        diet,
+        intolerances,
+        number
+    };
+    Object.keys(cacheKeyObject).forEach(key => cacheKeyObject[key] === undefined && delete cacheKeyObject[key]);
+    const cacheKey = `recipes_search_${JSON.stringify(cacheKeyObject)}`;
 
     try {
         const cachedResults = await getCache(cacheKey);
         if (cachedResults) {
+            console.log("Serving search from cache:", cacheKey);
             return res.json(cachedResults);
         }
+        console.log("Cache miss for search:", cacheKey);
 
-        const results = await searchRecipesSpoonacular(query, cuisine, diet, intolerances, number ? parseInt(number) : undefined);
+        const results = await searchRecipesSpoonacular(
+            query, 
+            ingredients, 
+            cuisine, 
+            diet, 
+            intolerances, 
+            number ? parseInt(number) : undefined
+        );
         await setCache(cacheKey, results, 3600);  // cache for 1 hr
         res.json(results);
     } catch (error) {

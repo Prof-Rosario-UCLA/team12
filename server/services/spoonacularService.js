@@ -13,22 +13,50 @@ const spoonacularApi = axios.create({
     },
 });
 
-export const searchRecipesSpoonacular = async (query, cuisine, diet, intolerances, number = 10) => {
+export const searchRecipesSpoonacular = async (query, ingredients, cuisine, diet, intolerances, number = 10) => {
     try {
-        const params = {
-            query,
-            cuisine,
-            diet,
-            intolerances,
+        let response;
+        const commonParams = {
             number,
-            addRecipeInformation: true,
+            apiKey: SPOONACULAR_API_KEY,
         };
-        Object.keys(params).forEach(key => (params[key] === undefined || params[key] === '') && delete params[key]);
 
-        const response = await spoonacularApi.get('/recipes/complexSearch', { params });
+        if (ingredients) {
+            const params = {
+                ...commonParams,
+                ingredients,
+                ranking: 2,
+                ignorePantry: true,
+            };
+            Object.keys(params).forEach(key => (params[key] === undefined || params[key] === '') && delete params[key]);
+            
+            console.log('Searching Spoonacular by ingredients with params:', params);
+            response = await spoonacularApi.get('/recipes/findByIngredients', { params });
+        } else if (query) {
+            const params = {
+                ...commonParams,
+                query,
+                cuisine,
+                diet,
+                intolerances,
+                addRecipeInformation: true,
+            };
+            Object.keys(params).forEach(key => (params[key] === undefined || params[key] === '') && delete params[key]);
+
+            console.log('Searching Spoonacular by complex query with params:', params);
+            response = await spoonacularApi.get('/recipes/complexSearch', { params });
+        } else {
+            console.log('No ingredients or query provided for recipe search.');
+            return [];
+        }
+        
         return response.data;
     } catch (error) {
-        console.error('Spoonacular API search error:', error.response ? error.response.data : error.message);
+        const errorMsg = error.response ? error.response.data : error.message;
+        console.error('Spoonacular API search error:', errorMsg);
+        if (error.response && error.response.status === 401) {
+            throw new Error('Spoonacular API Key is invalid or unauthorized. Please check server .env configuration.');
+        }
         throw new Error('Failed to fetch recipes from Spoonacular');
     }
 };
