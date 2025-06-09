@@ -9,6 +9,8 @@ import recipeRoutes from './routes/recipes.js';
 import aiRoutes from './routes/ai.js';
 import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 connectDB();
@@ -53,14 +55,21 @@ app.use(cookieParser());
 //     next();
 // });
 
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/pantry', pantryRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/users', userRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Hello from Pantry Pal Server!');
+// serve static files from client/dist
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'client/dist')));
+
+// serve index.html for React Router
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/dist', 'index.html'));
 });
 
 const port = process.env.PORT || 5000;

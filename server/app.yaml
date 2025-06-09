@@ -1,0 +1,29 @@
+runtime: nodejs20
+env: standard
+instance_class: F1
+entrypoint: node index.js
+
+handlers:
+- url: /
+  static_files: client/dist/index.html
+  upload: client/dist/index.html
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.*)
+  static_files: client/dist/\1
+  upload: client/dist/(.*)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /api/.*
+  script: auto
+  secure: always
+  redirect_http_response_code: 301
+
+env_variables:
+  MONGO_URI: "YOUR_MONGO_URI_HERE"
+  REDIS_URL: "YOUR_REDIS_URL_HERE"
+  JWT_SECRET: "YOUR_JWT_SECRET_HERE"
+  SPOONACULAR_API_KEY: "YOUR_SPOONACULAR_API_KEY_HERE"
+  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY_HERE" 
