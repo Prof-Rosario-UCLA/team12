@@ -20,7 +20,7 @@ const SideNav = () => {
 
   return (
     <aside className="bg-background text-foreground shadow-md border-r fixed left-0 top-16 bottom-0 z-40 w-60 flex flex-col p-4 space-y-2">
-      <nav className="flex-grow flex flex-col space-y-1">
+      <nav aria-label="Sidebar navigation" className="flex-grow flex flex-col space-y-1">
         {navItems.map((item) => {
           const active = item.activeCheck ? item.activeCheck() : isActive(item.to);
           return (
@@ -34,7 +34,7 @@ const SideNav = () => {
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
             >
-              <item.icon className="w-5 h-5 mr-3" />
+              <item.icon className="w-5 h-5 mr-3" aria-hidden="true" />
               {item.label}
             </Link>
           );
@@ -43,7 +43,7 @@ const SideNav = () => {
       <div className="mt-auto space-y-2 pt-4 border-t">
         <ThemeToggle />
         <Button variant="outline" size="sm" onClick={logout} className="w-full">
-          <LogOut className="w-4 h-4 mr-2" /> Logout
+          <LogOut className="w-4 h-4 mr-2" aria-hidden="true" /> Logout
         </Button>
       </div>
     </aside>
