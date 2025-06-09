@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, ChefHat, Clock, TrendingUp } from 'lucide-react';
+import { Package, ChartColumnStacked, Clock } from 'lucide-react';
 import Header from '../components/Header';
 import axios from 'axios';
 
@@ -88,20 +88,8 @@ const Dashboard = () => {
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <ChefHat className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Recipes Available</h2>
-                  <p className="text-3xl font-bold text-green-600">∞</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-purple-600" />
+                  <ChartColumnStacked className="h-6 w-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
                   <h2 className="text-lg font-semibold text-gray-900">Categories</h2>

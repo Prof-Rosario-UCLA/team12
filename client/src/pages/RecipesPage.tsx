@@ -315,7 +315,7 @@ const RecipesPage = () => {
       )}
 
       {!loading && recipes.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
           {recipes.map((recipe) => (
             <Card
               key={recipe.id}
@@ -492,33 +492,49 @@ const RecipesPage = () => {
               )}
               
               {!loadingDetails && selectedRecipe.id !== undefined && (
-                  <DialogFooter className="sm:justify-between gap-2 pt-4 border-t mt-auto border-border">
-                    <Button 
-                        variant={favoritedRecipeIds.includes(selectedRecipe.id) ? "default" : "outline"} 
-                        onClick={() => toggleFavorite(selectedRecipe.id)} 
-                        className="w-full sm:w-auto"
-                    >
-                        <Heart className={`mr-2 h-4 w-4 ${favoritedRecipeIds.includes(selectedRecipe.id) ? 'fill-destructive text-destructive-foreground' : ''}`} />
-                        {favoritedRecipeIds.includes(selectedRecipe.id) ? 'Unfavorite' : 'Favorite Recipe'}
-                    </Button>
-                    <div className="flex gap-2">
+                (() => {
+                  const isFavorited = favoritedRecipeIds.includes(selectedRecipe.id);
+                  return (
+                    <DialogFooter className="sm:justify-between gap-2 pt-4 border-t mt-auto border-border">
+                      {isFavorited ? (
+                        <Button 
+                          variant="default" 
+                          onClick={() => toggleFavorite(selectedRecipe.id)} 
+                          className="w-full sm:w-auto"
+                        >
+                          <Heart className="mr-2 h-4 w-4 fill-destructive text-destructive-foreground" />
+                          Unfavorite
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => toggleFavorite(selectedRecipe.id)} 
+                          className="w-full sm:w-auto"
+                        >
+                          <Heart className="mr-2 h-4 w-4" />
+                          Favorite Recipe
+                        </Button>
+                      )}
+                      <div className="flex gap-2">
                         <DialogClose asChild>
-                            <Button type="button" variant="outline">Close</Button>
+                          <Button type="button" variant="outline">Close</Button>
                         </DialogClose>
                         {selectedRecipe.sourceUrl && (
-                        <a
+                          <a
                             href={selectedRecipe.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                        >
+                          >
                             <Button className="w-full sm:w-auto">
-                                <ExternalLink className="w-4 h-4 mr-2" />
-                                View Full Recipe
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              View Full Recipe
                             </Button>
-                        </a>
+                          </a>
                         )}
-                    </div>
-                </DialogFooter>
+                      </div>
+                    </DialogFooter>
+                  );
+                })()
               )}
             </>
           )}

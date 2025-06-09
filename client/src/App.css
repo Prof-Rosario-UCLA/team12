@@ -6,14 +6,14 @@
 }
 
 html, body {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  overflow: hidden; /* Fallback for browsers that don't support the above, though this might disable scrolling entirely if not careful */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow: hidden;
 }
 
 html::-webkit-scrollbar, 
 body::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
 }
 
 .logo {

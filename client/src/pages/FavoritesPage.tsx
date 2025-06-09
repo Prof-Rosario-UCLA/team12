@@ -93,7 +93,7 @@ const FavoritesPage = () => {
               <h1 className="text-4xl font-bold text-foreground">Your Favorite Recipes</h1>
               <p className="text-muted-foreground mt-2">All your saved culinary inspirations in one place.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
               {favoriteRecipes.map((recipe) => (
                 <Card key={recipe.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col bg-card">
                   <Link to={`/recipes/${recipe.id}`} state={{ recipe }} className="block">
