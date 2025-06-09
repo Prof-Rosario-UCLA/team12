@@ -5,6 +5,17 @@
   text-align: center;
 }
 
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  overflow: hidden; /* Fallback for browsers that don't support the above, though this might disable scrolling entirely if not careful */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

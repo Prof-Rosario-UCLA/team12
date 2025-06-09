@@ -22,7 +22,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       {user && (
-        <main className="flex-grow">
+        <main className="flex flex-col flex-grow">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/pantry" element={<PantryPage />} />
@@ -35,7 +35,7 @@ function App() {
         </main>
       )}
       {!user && (
-        <main className="flex-grow">
+        <main className="flex flex-col flex-grow">
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
