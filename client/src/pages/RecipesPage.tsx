@@ -386,7 +386,7 @@ const RecipesPage = () => {
       )}
 
       <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
-        <DialogContent className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] flex flex-col bg-card">
+        <DialogContent showCloseButton={false} className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] flex flex-col bg-card">
           {selectedRecipe && (
             <>
               <DialogHeader className="border-b pb-3">
