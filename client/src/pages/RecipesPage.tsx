@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import type { Recipe, PantryItem } from '@/types/recipe';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
+import { findMatchingIngredientsWasm } from '../services/wasmService';
 
 const RecipesPage = () => {
   const { id: recipeIdFromParams } = useParams<{ id?: string }>();
@@ -316,72 +317,81 @@ const RecipesPage = () => {
 
       {!loading && recipes.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
-          {recipes.map((recipe) => (
-            <Card
-              key={recipe.id}
-              className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col bg-card"
-            >
-              <Link to={`/recipes/${recipe.id}`} onClick={(e) => { e.preventDefault(); getRecipeDetails(recipe.id, true); }}>
-                <img
-                  src={recipe.image}
-                  alt={recipe.title}
-                  className="w-full h-48 object-cover cursor-pointer"
-                />
-              </Link>
-              <CardHeader className="pb-2">
+          {recipes.map((recipe) => {
+            // WASM fuzzy matching integration
+            const pantryNames = pantryItems.map(item => item.name);
+            const recipeIngredients = recipe.extendedIngredients?.map(ing => ing.name) || [];
+            // This is async, so for demo, just log, but in real use, you'd use state/effect
+            findMatchingIngredientsWasm(pantryNames, recipeIngredients).then(matched => {
+              console.log(`Matched for recipe ${recipe.title}:`, matched);
+            });
+            return (
+              <Card
+                key={recipe.id}
+                className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col bg-card"
+              >
                 <Link to={`/recipes/${recipe.id}`} onClick={(e) => { e.preventDefault(); getRecipeDetails(recipe.id, true); }}>
-                  <CardTitle 
-                    className="text-lg line-clamp-2 text-foreground hover:underline cursor-pointer"
-                  >
-                    {recipe.title}
-                  </CardTitle>
+                  <img
+                    src={recipe.image}
+                    alt={recipe.title}
+                    className="w-full h-48 object-cover cursor-pointer"
+                  />
                 </Link>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                {(recipe.readyInMinutes || recipe.servings) && (
-                  <div className="flex items-center text-sm text-muted-foreground space-x-3 mb-2">
-                    {recipe.readyInMinutes && <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{recipe.readyInMinutes} min</Badge>}
-                    {recipe.servings && <Badge variant="outline"><Users className="w-3 h-3 mr-1" />{recipe.servings} serv.</Badge>}
-                  </div>
-                )}
-                {(recipe.usedIngredientCount !== undefined || recipe.missedIngredientCount !== undefined) && (
-                  <div className="mt-2 text-xs space-y-1">
-                    {recipe.usedIngredientCount !== undefined && recipe.usedIngredientCount > 0 && <Badge variant="secondary" className="text-green-600 dark:text-green-400 border-green-600/50 dark:border-green-400/50">Uses: {recipe.usedIngredientCount} pantry items</Badge>}
-                    {recipe.missedIngredientCount !== undefined && recipe.missedIngredientCount > 0 && <Badge variant="destructive" className="text-orange-600 dark:text-orange-400 border-orange-600/50 dark:border-orange-400/50">Missing: {recipe.missedIngredientCount}</Badge>}
-                  </div>
-                )}
-                {recipe.summary && !((recipe.usedIngredientCount !== undefined || recipe.missedIngredientCount !== undefined)) && (
-                  <p className="text-sm text-muted-foreground line-clamp-3 mt-2">
-                    {stripHtml(recipe.summary)}
-                  </p>
-                )}
-              </CardContent>
-              <CardFooter className="p-3 border-t bg-muted/30">
-                <Link to={`/recipes/${recipe.id}`} className="w-full text-xs mr-2">
+                <CardHeader className="pb-2">
+                  <Link to={`/recipes/${recipe.id}`} onClick={(e) => { e.preventDefault(); getRecipeDetails(recipe.id, true); }}>
+                    <CardTitle 
+                      className="text-lg line-clamp-2 text-foreground hover:underline cursor-pointer"
+                    >
+                      {recipe.title}
+                    </CardTitle>
+                  </Link>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  {(recipe.readyInMinutes || recipe.servings) && (
+                    <div className="flex items-center text-sm text-muted-foreground space-x-3 mb-2">
+                      {recipe.readyInMinutes && <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{recipe.readyInMinutes} min</Badge>}
+                      {recipe.servings && <Badge variant="outline"><Users className="w-3 h-3 mr-1" />{recipe.servings} serv.</Badge>}
+                    </div>
+                  )}
+                  {(recipe.usedIngredientCount !== undefined || recipe.missedIngredientCount !== undefined) && (
+                    <div className="mt-2 text-xs space-y-1">
+                      {recipe.usedIngredientCount !== undefined && recipe.usedIngredientCount > 0 && <Badge variant="secondary" className="text-green-600 dark:text-green-400 border-green-600/50 dark:border-green-400/50">Uses: {recipe.usedIngredientCount} pantry items</Badge>}
+                      {recipe.missedIngredientCount !== undefined && recipe.missedIngredientCount > 0 && <Badge variant="destructive" className="text-orange-600 dark:text-orange-400 border-orange-600/50 dark:border-orange-400/50">Missing: {recipe.missedIngredientCount}</Badge>}
+                    </div>
+                  )}
+                  {recipe.summary && !((recipe.usedIngredientCount !== undefined || recipe.missedIngredientCount !== undefined)) && (
+                    <p className="text-sm text-muted-foreground line-clamp-3 mt-2">
+                      {stripHtml(recipe.summary)}
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter className="p-3 border-t bg-muted/30">
+                  <Link to={`/recipes/${recipe.id}`} className="w-full text-xs mr-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={(e) => { 
+                        e.preventDefault(); 
+                        getRecipeDetails(recipe.id, true);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </Link>
                   <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={(e) => { 
-                      e.preventDefault(); 
-                      getRecipeDetails(recipe.id, true);
-                    }}
+                    variant={favoritedRecipeIds.includes(recipe.id) ? "default" : "outline"} 
+                    size="icon" 
+                    className="ml-2 h-8 w-8" 
+                    onClick={() => toggleFavorite(recipe.id)}
+                    aria-label={favoritedRecipeIds.includes(recipe.id) ? "Unfavorite" : "Favorite"}
                   >
-                    View Details
+                    <Heart className={`h-4 w-4 ${favoritedRecipeIds.includes(recipe.id) ? 'fill-destructive text-destructive' : ''}`} />
                   </Button>
-                </Link>
-                <Button 
-                  variant={favoritedRecipeIds.includes(recipe.id) ? "default" : "outline"} 
-                  size="icon" 
-                  className="ml-2 h-8 w-8" 
-                  onClick={() => toggleFavorite(recipe.id)}
-                  aria-label={favoritedRecipeIds.includes(recipe.id) ? "Unfavorite" : "Favorite"}
-                >
-                  <Heart className={`h-4 w-4 ${favoritedRecipeIds.includes(recipe.id) ? 'fill-destructive text-destructive' : ''}`} />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       )}
 
