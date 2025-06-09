@@ -36,24 +36,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// const csrfProtection = csurf({ 
-//   cookie: true,
-//   ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
-// });
+const csrfProtection = csurf({ 
+  cookie: true,
+  ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
+});
 
-// app.use((req, res, next) => {
-//   if (req.path === '/api/csrf-token' || req.path === '/') {
-//     return next();
-//   }
-//   csrfProtection(req, res, next);
-// });
+app.use((req, res, next) => {
+  if (req.path === '/api/csrf-token' || req.path === '/') {
+    return next();
+  }
+  csrfProtection(req, res, next);
+});
 
-// app.use((req, res, next) => {
-//     if (req.csrfToken) {
-//         res.cookie('XSRF-TOKEN', req.csrfToken());
-//     }
-//     next();
-// });
+app.use((req, res, next) => {
+    if (req.csrfToken) {
+        res.cookie('XSRF-TOKEN', req.csrfToken());
+    }
+    next();
+});
+
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 // API routes
 app.use('/api/auth', authRoutes);
