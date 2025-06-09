@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import PantryPage from './pages/PantryPage';
 import RecipesPage from './pages/RecipesPage';
@@ -21,29 +20,29 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      {user && <Header />}
-      <main className={`flex-grow ${user ? 'pt-16' : ''}`}>
-        <Routes>
-          {user ? (
-            <>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/pantry" element={<PantryPage />} />
-              <Route path="/recipes" element={<RecipesPage />} />
-              <Route path="/recipes/:id" element={<RecipesPage />} />
-              <Route path="/favorites" element={<FavoritesPage />} />
-              <Route path="/login" element={<Navigate to="/" />} />
-              <Route path="/register" element={<Navigate to="/" />} />
-            </>
-          ) : (
-            <>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="*" element={<Navigate to="/login" />} />
-            </>
-          )}
-        </Routes>
-      </main>
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      {user && (
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/pantry" element={<PantryPage />} />
+            <Route path="/recipes" element={<RecipesPage />} />
+            <Route path="/recipes/:id" element={<RecipesPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/login" element={<Navigate to="/" />} />
+            <Route path="/register" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+      )}
+      {!user && (
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </main>
+      )}
     </div>
   );
 }

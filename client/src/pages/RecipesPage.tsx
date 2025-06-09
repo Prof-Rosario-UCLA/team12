@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Clock, Users, ExternalLink, ChefHat, X, Info, Filter, Heart, Star } from 'lucide-react';
+import { Search, Clock, Users, ExternalLink, ChefHat, X, Info, Filter, Heart } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
-import type { Recipe, PantryItem, ExtendedIngredient, InstructionStep, AnalyzedInstruction } from '@/types/recipe';
+import type { Recipe, PantryItem } from '@/types/recipe';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import Header from '../components/Header';
 
 const RecipesPage = () => {
   const { id: recipeIdFromParams } = useParams<{ id?: string }>();
@@ -227,7 +228,10 @@ const RecipesPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <Header />
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold text-foreground">Recipe Discovery</h1>
         <p className="text-muted-foreground mt-2">Find delicious recipes based on your ingredients or by searching.</p>
@@ -295,7 +299,7 @@ const RecipesPage = () => {
       )}
 
       {loading && (
-        <div className="flex justify-center items-center py-12">
+        <div className="flex items-center justify-center h-full py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       )}
@@ -521,6 +525,8 @@ const RecipesPage = () => {
         </DialogContent>
       </Dialog>
     </div>
+      </main>
+   </>
   );
 };
 
