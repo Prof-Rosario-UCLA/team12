@@ -6,10 +6,12 @@ import FavoritesPage from './pages/FavoritesPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import { useAuth } from './context/AuthContext';
+import { useOfflineStatus } from './hooks/useOfflineStatus';
 import './App.css';
 
 function App() {
   const { user, loading } = useAuth();
+  const isOffline = useOfflineStatus();
 
   if (loading) {
     return (
@@ -21,6 +23,11 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
+      {isOffline && (
+        <div className="w-full bg-yellow-400 text-yellow-900 text-center py-2 font-semibold z-50">
+          Offline mode: Some features (like recipe search) are disabled.
+        </div>
+      )}
       {user && (
         <main className="flex flex-col flex-grow">
           <Routes>
