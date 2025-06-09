@@ -57,7 +57,10 @@ export const addPantryItem = async (req, res) => {
         const user = await User.findById(req.user._id);
         if (user) 
         {
-            user.pantry.push(createdItem._id);
+            if (!user.pantryItems) {
+                user.pantryItems = [];
+            }
+            user.pantryItems.push(createdItem._id);
             await user.save();
         }
 
@@ -161,7 +164,7 @@ export const deletePantryItem = async (req, res) => {
 
         const user = await User.findById(req.user._id);
         if (user) {
-            user.pantry = user.pantry.filter(itemId => itemId.toString() !== req.params.id);
+            user.pantryItems = user.pantryItems.filter(itemId => itemId.toString() !== req.params.id);
             await user.save();
         }
 

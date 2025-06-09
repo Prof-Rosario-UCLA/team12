@@ -13,6 +13,18 @@ interface PantryItem {
 }
 
 const PantryPage = () => {
+
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month is 0-indexed
+  };
+
+  const getTodayAtMidnight = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  };
+
   const [items, setItems] = useState<PantryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -30,10 +42,12 @@ const PantryPage = () => {
 
   const fetchItems = async () => {
     try {
+      setLoading(true);
+      console.log('Fetching items...');
       const response = await axios.get('http://localhost:5001/api/pantry', {
         withCredentials: true,
       });
-      setItems(response.data);
+      setItems([...response.data]);
     } catch (error) {
       console.error('Error fetching items:', error);
     } finally {
@@ -52,22 +66,40 @@ const PantryPage = () => {
         expirationDate: formData.expirationDate || null,
       };
 
+      let savedItem: PantryItem | null = null;
+
       if (editingItem) {
-        await axios.put(`http://localhost:5001/api/pantry/${editingItem._id}`, data, {
+        const response = await axios.put<PantryItem>(`http://localhost:5001/api/pantry/${editingItem._id}`, data, {
           withCredentials: true,
         });
+        savedItem = response.data;
+        console.log('Backend response for update:', savedItem);
       } else {
-        await axios.post('http://localhost:5001/api/pantry', data, {
+        const response = await axios.post<PantryItem>('http://localhost:5001/api/pantry', data, {
           withCredentials: true,
         });
+        savedItem = response.data;
+        console.log('Backend response for create:', savedItem);
+      }
+
+      if (savedItem) {
+        if (editingItem) {
+          setItems(prevItems => 
+            prevItems.map(item => (item._id === savedItem!._id ? savedItem! : item))
+          );
+        } else {
+          setItems(prevItems => [...prevItems, savedItem!]);
+        }
+      } else {
+        fetchItems(); 
       }
 
       setFormData({ name: '', quantity: '', unit: '', expirationDate: '' });
       setShowAddForm(false);
       setEditingItem(null);
-      fetchItems();
     } catch (error) {
       console.error('Error saving item:', error);
+      alert('Error saving item. Please check console for details and ensure backend is running correctly.'); 
     }
   };
 
@@ -104,8 +136,10 @@ const PantryPage = () => {
   };
 
   const isExpiringSoon = (expirationDate: string) => {
-    const today = new Date();
-    const expDate = new Date(expirationDate);
+    const today = getTodayAtMidnight();
+    if (typeof expirationDate !== 'string' || expirationDate === '') return false; 
+    const dateOnlyString = expirationDate.includes('T') ? expirationDate.split('T')[0] : expirationDate;
+    const expDate = parseLocalDate(dateOnlyString);
     const daysDiff = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
     return daysDiff <= 7 && daysDiff >= 0;
   };
@@ -120,7 +154,6 @@ const PantryPage = () => {
         </div>
       ) : (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* PantryPage content starts below */}
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Pantry</h1>
@@ -236,7 +269,7 @@ const PantryPage = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <div className="bg-white rounded-lg shadow overflow-x-auto max-h-[65vh] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -250,8 +283,15 @@ const PantryPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {items.map((item) => (
-                    <tr key={item._id} className={`${item.expirationDate && isExpiringSoon(item.expirationDate) ? 'bg-yellow-50' : ''}`}>
+                  {items.map((item) => {
+                    console.log(`Rendering item: ${item.name}, expirationDate: '${item.expirationDate}', createdAt: '${item.createdAt}'`);
+                    const expDateStr = (typeof item.expirationDate === 'string' && item.expirationDate !== '' && item.expirationDate.toLowerCase() !== 'null') 
+                      ? (item.expirationDate.includes('T') ? item.expirationDate.split('T')[0] : item.expirationDate) 
+                      : null;
+                    const createdDateStr = (typeof item.createdAt === 'string' && item.createdAt !== '') ? (item.createdAt.includes('T') ? item.createdAt.split('T')[0] : item.createdAt) : null;
+
+                    return (
+                    <tr key={item._id} className={`${expDateStr && isExpiringSoon(expDateStr) ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{item.name}</div>
                       </td>
@@ -259,17 +299,17 @@ const PantryPage = () => {
                         <div className="text-sm text-gray-900">{item.quantity} {item.unit}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {item.expirationDate ? (
-                          <div className={`text-sm ${new Date(item.expirationDate) < new Date() ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
-                            <Calendar className={`inline-block w-4 h-4 mr-1 ${new Date(item.expirationDate) < new Date() ? 'text-red-500' : (isExpiringSoon(item.expirationDate) ? 'text-yellow-500' : 'text-gray-400')}`} />
-                            {new Date(item.expirationDate).toLocaleDateString()}
+                        {expDateStr ? (
+                          <div className={`text-sm ${parseLocalDate(expDateStr) < getTodayAtMidnight() ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
+                            <Calendar className={`inline-block w-4 h-4 mr-1 ${parseLocalDate(expDateStr) < getTodayAtMidnight() ? 'text-red-500' : (isExpiringSoon(expDateStr) ? 'text-yellow-500' : 'text-gray-400')}`} />
+                            {parseLocalDate(expDateStr).toLocaleDateString()}
                           </div>
                         ) : (
                           <span className="text-sm text-gray-500">N/A</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(item.createdAt).toLocaleDateString()}
+                        {createdDateStr ? parseLocalDate(createdDateStr).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3">
@@ -280,7 +320,7 @@ const PantryPage = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                  );})}
                 </tbody>
               </table>
             </div>
