@@ -1,29 +1,10 @@
 runtime: nodejs20
 env: standard
 instance_class: F1
-entrypoint: node index.js
-
-handlers:
-- url: /
-  static_files: client/dist/index.html
-  upload: client/dist/index.html
-  secure: always
-  redirect_http_response_code: 301
-
-- url: /(.*)
-  static_files: client/dist/\1
-  upload: client/dist/(.*)
-  secure: always
-  redirect_http_response_code: 301
-
-- url: /api/.*
-  script: auto
-  secure: always
-  redirect_http_response_code: 301
 
 env_variables:
-  MONGO_URI: "YOUR_MONGO_URI_HERE"
-  REDIS_URL: "YOUR_REDIS_URL_HERE"
-  JWT_SECRET: "YOUR_JWT_SECRET_HERE"
-  SPOONACULAR_API_KEY: "YOUR_SPOONACULAR_API_KEY_HERE"
-  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY_HERE" 
+  MONGO_URI: "mongodb+srv://pantrypaladmin:cs144finalproj2025@pantrypalcluster.sdqvqko.mongodb.net/pantrypal?retryWrites=true&w=majority&appName=PantryPalCluster"
+  REDIS_URL: ""
+  JWT_SECRET: "pantry_pal_super_secret_jwt_key_for_development_2024_very_long_random_string_12345"
+  SPOONACULAR_API_KEY: "c7e6172fa7a94645a4b3a92b33d46e68"
+  GEMINI_API_KEY: "AIzaSyAVNbbwsG-UHOZG3JEneyYmY80EXvLlOtI" 

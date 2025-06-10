@@ -44,7 +44,7 @@ const PantryPage = () => {
     try {
       setLoading(true);
       console.log('Fetching items...');
-      const response = await axios.get('http://localhost:5001/api/pantry', {
+      const response = await axios.get('/api/pantry', {
         withCredentials: true,
       });
       setItems([...response.data]);
@@ -69,13 +69,13 @@ const PantryPage = () => {
       let savedItem: PantryItem | null = null;
 
       if (editingItem) {
-        const response = await axios.put<PantryItem>(`http://localhost:5001/api/pantry/${editingItem._id}`, data, {
+        const response = await axios.put<PantryItem>(`/api/pantry/${editingItem._id}`, data, {
           withCredentials: true,
         });
         savedItem = response.data;
         console.log('Backend response for update:', savedItem);
       } else {
-        const response = await axios.post<PantryItem>('http://localhost:5001/api/pantry', data, {
+        const response = await axios.post<PantryItem>('/api/pantry', data, {
           withCredentials: true,
         });
         savedItem = response.data;
@@ -119,7 +119,7 @@ const PantryPage = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this item?')) {
       try {
-        await axios.delete(`http://localhost:5001/api/pantry/${id}`, {
+        await axios.delete(`/api/pantry/${id}`, {
           withCredentials: true,
         });
         fetchItems();

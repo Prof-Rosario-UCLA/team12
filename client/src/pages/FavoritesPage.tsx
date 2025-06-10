@@ -19,7 +19,7 @@ const FavoritesPage = () => {
     setError(null);
     console.log('[FavoritesPage] Fetching favorite recipes...');
     try {
-      const response = await axios.get('http://localhost:5001/api/users/favorites', {
+      const response = await axios.get('/api/users/favorites', {
         withCredentials: true,
       });
       console.log('[FavoritesPage] Favorite recipes fetched:', response.data);
@@ -46,7 +46,7 @@ const FavoritesPage = () => {
   const handleUnfavorite = async (recipeId: number) => {
     console.log(`[FavoritesPage] Attempting to unfavorite recipe ID: ${recipeId}`);
     try {
-      await axios.delete(`http://localhost:5001/api/users/favorites/${recipeId}`, { 
+      await axios.delete(`/api/users/favorites/${recipeId}`, { 
         withCredentials: true 
       });
       setFavoriteRecipes(prevFavorites => prevFavorites.filter(recipe => recipe.id !== recipeId));

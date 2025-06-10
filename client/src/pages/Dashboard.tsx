@@ -19,7 +19,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPantryItems = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/pantry', {
+        const response = await axios.get('/api/pantry', {
           withCredentials: true,
         });
         setPantryItems(response.data);

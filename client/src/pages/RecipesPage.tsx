@@ -32,7 +32,7 @@ const RecipesPage = () => {
   const fetchPantryItems = async () => {
     console.log('[RecipesPage] Fetching pantry items...');
     try {
-      const response = await axios.get('http://localhost:5001/api/pantry', {
+      const response = await axios.get('/api/pantry', {
         withCredentials: true,
       });
       setPantryItems(response.data || []);
@@ -47,7 +47,7 @@ const RecipesPage = () => {
   const fetchFavoriteIds = async () => {
     console.log('[RecipesPage] Fetching favorite recipe IDs...');
     try {
-      const response = await axios.get('http://localhost:5001/api/users/favorites', { withCredentials: true });
+      const response = await axios.get('/api/users/favorites', { withCredentials: true });
       setFavoritedRecipeIds(response.data || []);
       console.log('[RecipesPage] Favorite IDs fetched:', response.data);
     } catch (error) {
@@ -83,7 +83,7 @@ const RecipesPage = () => {
     }
 
     try {
-      const response = await axios.get('http://localhost:5001/api/recipes/search', {
+      const response = await axios.get('/api/recipes/search', {
         params: { number: 12, ...params },
         withCredentials: true,
       });
@@ -171,7 +171,7 @@ const RecipesPage = () => {
 
     console.log(`[RecipesPage] Fetching full details for recipe ID: ${recipeId}`);
     try {
-      const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}`, {
+      const response = await axios.get(`/api/recipes/${recipeId}`, {
         withCredentials: true,
       });
       console.log('[RecipesPage] Full recipe details fetched:', response.data);
@@ -209,11 +209,11 @@ const RecipesPage = () => {
     console.log(`[RecipesPage] Toggling favorite for recipe ID: ${recipeId}, currently favorited: ${isFavorited}`);
     try {
       if (isFavorited) {
-        await axios.delete(`http://localhost:5001/api/users/favorites/${recipeId}`, { withCredentials: true });
+        await axios.delete(`/api/users/favorites/${recipeId}`, { withCredentials: true });
         setFavoritedRecipeIds(prev => prev.filter(id => id !== recipeId));
         console.log('[RecipesPage] Recipe unfavorited successfully');
       } else {
-        await axios.post('http://localhost:5001/api/users/favorites', { recipeId }, { withCredentials: true });
+        await axios.post('/api/users/favorites', { recipeId }, { withCredentials: true });
         setFavoritedRecipeIds(prev => [...prev, recipeId]);
         console.log('[RecipesPage] Recipe favorited successfully');
       }
