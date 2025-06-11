@@ -31,7 +31,7 @@ const MealPlanPage = () => {
         </div>
 
         {recipes.length === 0 ? (
-          <p className="text-muted-foreground">You haven\'t added any recipes to your meal plan yet.</p>
+          <p className="text-muted-foreground">You haven't added any recipes to your meal plan yet.</p>
         ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -56,18 +56,18 @@ const MealPlanPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
                         {nutrientKeys.map((key) => (
-                          <th key={key} className="px-4 py-2 text-left font-semibold text-gray-700 uppercase tracking-wider">{key}</th>
+                          <th key={key} className="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{key}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                       <tr>
                         {nutrientKeys.map((key) => (
-                          <td key={key} className="px-4 py-2 whitespace-nowrap">{totals[key]?.toFixed(0) || '-'} {key === 'Calories' ? 'kcal' : 'g'}</td>
+                          <td key={key} className="px-4 py-2 whitespace-nowrap text-gray-900 dark:text-gray-100">{totals[key]?.toFixed(0) || '-'} {key === 'Calories' ? 'kcal' : 'g'}</td>
                         ))}
                       </tr>
                     </tbody>

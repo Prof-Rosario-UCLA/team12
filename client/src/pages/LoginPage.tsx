@@ -40,8 +40,8 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-950 p-6 sm:p-8">
-      <Card className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-xl p-8 sm:p-10 md:p-12 space-y-8 border-0 shadow-2xl">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center dark:bg-slate-1050 p-0">
+      <Card className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-xl p-8 sm:p-10 md:p-12 space-y-8 border-0 shadow-2xl overflow-y-auto max-h-[90vh]">
         <CardHeader className="space-y-3 text-center p-0 mb-8">
           <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-500/20 mb-5">
             <LogIn className="h-10 w-10 text-blue-600 dark:text-blue-400" />
