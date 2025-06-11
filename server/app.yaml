@@ -1,0 +1,10 @@
+runtime: nodejs20
+env: standard
+instance_class: F1
+
+env_variables:
+  MONGO_URI: "mongodb+srv://pantrypaladmin:cs144finalproj2025@pantrypalcluster.sdqvqko.mongodb.net/pantrypal?retryWrites=true&w=majority&appName=PantryPalCluster"
+  REDIS_URL: ""
+  JWT_SECRET: "pantry_pal_super_secret_jwt_key_for_development_2024_very_long_random_string_12345"
+  SPOONACULAR_API_KEY: "c7e6172fa7a94645a4b3a92b33d46e68"
+  GEMINI_API_KEY: "AIzaSyAVNbbwsG-UHOZG3JEneyYmY80EXvLlOtI" 
