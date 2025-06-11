@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy to Google App Engine
 
 on:
   push:
@@ -13,24 +13,36 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Node.js
+    - name: Set up Node.js (if you're using Node)
       uses: actions/setup-node@v3
       with:
         node-version: '18'
 
     - name: Install dependencies
-      run: npm ci
-
-    - name: Run build
       run: |
-        echo "Starting build..."
+        echo "Installing dependencies..."
+        npm ci
+
+    - name: Build app
+      run: |
+        echo "Building the app..."
         npm run build
-        echo "Build completed."
+        echo "Build complete."
 
-    - name: Deploy to production
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    - name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCLOUD_SERVICE_KEY }}'
+
+    - name: Set up gcloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Deploy to Google App Engine
       run: |
-        echo "Starting deploy..."
-        npx vercel --prod --token $VERCEL_TOKEN
-        echo "Deploy finished."
+        echo "Deploying to GAE..."
+        gcloud app deploy --quiet --project=$GCP_PROJECT_ID --region=$GAE_REGION
+      env:
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        GAE_REGION: ${{ secrets.GAE_REGION }}
