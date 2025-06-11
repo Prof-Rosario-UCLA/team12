@@ -145,7 +145,7 @@ const PantryPage = () => {
         await axios.delete(`/api/pantry/${id}`, {
           withCredentials: true,
         });
-        fetchItems();
+        setItems(prevItems => prevItems.filter(item => item._id !== id));
       } catch (error) {
         console.error('Error deleting item:', error);
       }
