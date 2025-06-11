@@ -10,24 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up Node.js (if you're using Node)
+    - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
 
-    - name: Install dependencies
+    - name: Install server dependencies
       run: |
-        echo "Installing dependencies..."
-        npm ci
+        cd server
+        npm install
 
-    - name: Build app
+    - name: Install client dependencies
       run: |
-        echo "Building the app..."
+        cd client
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd client
         npm run build
-        echo "Build complete."
+
+    - name: Copy frontend build to server
+      run: |
+        rm -rf server/client
+        mkdir -p server/client
+        cp -r client/dist/* server/client/
 
     - name: Authenticate with Google Cloud
       uses: google-github-actions/auth@v2
@@ -41,8 +51,7 @@ jobs:
 
     - name: Deploy to Google App Engine
       run: |
-        echo "Deploying to GAE..."
-        gcloud app deploy --quiet --project=$GCP_PROJECT_ID --region=$GAE_REGION
+        cd server
+        gcloud app deploy --quiet --project=$GCP_PROJECT_ID
       env:
         GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        GAE_REGION: ${{ secrets.GAE_REGION }}
