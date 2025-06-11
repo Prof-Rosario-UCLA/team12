@@ -9,13 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import type { Recipe, PantryItem } from '@/types/recipe';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import { findMatchingIngredientsWasm } from '../services/wasmService';
+import { useMealPlan } from '@/context/MealPlanContext';
 
 const RecipesPage = () => {
   const { id: recipeIdFromParams } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
@@ -28,6 +30,8 @@ const RecipesPage = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [maxMissingIngredients, setMaxMissingIngredients] = useState<number>(3);
   const [favoritedRecipeIds, setFavoritedRecipeIds] = useState<number[]>([]);
+
+  const { addRecipeById, removeRecipe, recipes: mealPlanRecipes } = useMealPlan();
 
   const fetchPantryItems = async () => {
     console.log('[RecipesPage] Fetching pantry items...');
@@ -66,6 +70,22 @@ const RecipesPage = () => {
       }
     }
   }, [recipeIdFromParams]);
+
+  // Trigger search if ingredients passed via navigation state
+  useEffect(() => {
+    const state = location.state as { ingredients?: string } | null;
+    if (state?.ingredients) {
+      const ingredientsStr = state.ingredients.trim();
+      if (ingredientsStr) {
+        console.log('[RecipesPage] Auto search with selected ingredients:', ingredientsStr);
+        searchRecipesAPI({ ingredients: ingredientsStr }, 'pantry');
+        // Clear state after use to avoid repeating on future navigations
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+    // We intentionally include navigate, location.pathname in deps to keep linter happy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   const searchRecipesAPI = async (params: Record<string, any>, searchType: string) => {
     console.log(`[RecipesPage] Initiating ${searchType} search with params:`, params);
@@ -386,7 +406,7 @@ const RecipesPage = () => {
                     onClick={() => toggleFavorite(recipe.id)}
                     aria-label={favoritedRecipeIds.includes(recipe.id) ? "Unfavorite" : "Favorite"}
                   >
-                    <Heart className={`h-4 w-4 ${favoritedRecipeIds.includes(recipe.id) ? 'fill-destructive text-destructive' : ''}`} />
+                    <Heart className={`h-4 w-4 ${favoritedRecipeIds.includes(recipe.id) ? 'text-red-600 fill-red-600' : 'text-muted-foreground'}`} />
                   </Button>
                 </CardFooter>
               </Card>
@@ -396,7 +416,7 @@ const RecipesPage = () => {
       )}
 
       <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
-        <DialogContent showCloseButton={false} className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] flex flex-col bg-card">
+        <DialogContent showCloseButton={false} className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] flex flex-col glass-panel border shadow-xl">
           {selectedRecipe && (
             <>
               <DialogHeader className="border-b pb-3">
@@ -512,7 +532,7 @@ const RecipesPage = () => {
                           onClick={() => toggleFavorite(selectedRecipe.id)} 
                           className="w-full sm:w-auto"
                         >
-                          <Heart className="mr-2 h-4 w-4 fill-destructive text-destructive-foreground" />
+                          <Heart className="mr-2 h-4 w-4 text-red-600 fill-red-600" />
                           Unfavorite
                         </Button>
                       ) : (
@@ -521,11 +541,24 @@ const RecipesPage = () => {
                           onClick={() => toggleFavorite(selectedRecipe.id)} 
                           className="w-full sm:w-auto"
                         >
-                          <Heart className="mr-2 h-4 w-4" />
+                          <Heart className="mr-2 h-4 w-4 text-muted-foreground" />
                           Favorite Recipe
                         </Button>
                       )}
                       <div className="flex gap-2">
+                        <Button 
+                          variant={mealPlanRecipes.some(r => r.id === selectedRecipe.id) ? 'default' : 'outline'}
+                          onClick={() => {
+                            if (mealPlanRecipes.some(r => r.id === selectedRecipe.id)) {
+                              removeRecipe(selectedRecipe.id as number);
+                            } else {
+                              addRecipeById(selectedRecipe.id as number);
+                            }
+                          }}
+                          className="w-full sm:w-auto"
+                        >
+                          {mealPlanRecipes.some(r => r.id === selectedRecipe.id) ? 'Remove from Plan' : 'Add to Meal Plan'}
+                        </Button>
                         <DialogClose asChild>
                           <Button type="button" variant="outline">Close</Button>
                         </DialogClose>

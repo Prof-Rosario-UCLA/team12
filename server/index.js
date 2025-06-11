@@ -41,22 +41,28 @@ const csrfProtection = csurf({
   ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
 });
 
-app.use((req, res, next) => {
-  if (req.path === '/api/csrf-token' || req.path === '/') {
-    return next();
-  }
-  csrfProtection(req, res, next);
-});
+// Apply CSRF protection for every request. Since ignoreMethods already contains
+// GET, HEAD and OPTIONS, normal page/API fetches will not be blocked, but any
+// state-changing request (POST, PUT, DELETE, PATCH) must provide the token.
+app.use(csrfProtection);
 
+// Expose the token to the client in both a cookie (useful for automatic axios
+// handling) and in JSON for manual handling.
 app.use((req, res, next) => {
-    if (req.csrfToken) {
-        res.cookie('XSRF-TOKEN', req.csrfToken());
+  if (typeof req.csrfToken === 'function') {
+    try {
+      const csrfToken = req.csrfToken();
+      res.cookie('XSRF-TOKEN', csrfToken);
+    } catch (err) {
+      // Ignore errors here; csurf will handle token validation on protected routes
     }
-    next();
+  }
+  next();
 });
 
 app.get('/api/csrf-token', (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
+  const csrfToken = typeof req.csrfToken === 'function' ? req.csrfToken() : null;
+  res.json({ csrfToken });
 });
 
 // API routes

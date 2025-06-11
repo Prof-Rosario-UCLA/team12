@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Package, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit2, Trash2, Package, Calendar, Sparkle } from 'lucide-react';
 import Header from '../components/Header';
 import axios from 'axios';
 
@@ -29,12 +30,16 @@ const PantryPage = () => {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<PantryItem | null>(null);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [rowEditData, setRowEditData] = useState({ name: '', quantity: '', unit: '', expirationDate: '' });
   const [formData, setFormData] = useState({
     name: '',
     quantity: '',
     unit: '',
     expirationDate: '',
   });
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchItems();
@@ -104,16 +109,34 @@ const PantryPage = () => {
   };
 
   const handleEdit = (item: PantryItem) => {
-    setEditingItem(item);
-    setFormData({
+    setEditingRowId(item._id);
+    setRowEditData({
       name: item.name,
       quantity: item.quantity.toString(),
       unit: item.unit,
-      expirationDate: item.expirationDate 
-        ? new Date(item.expirationDate).toISOString().split('T')[0] 
-        : '',
+      expirationDate: item.expirationDate ? (item.expirationDate.includes('T') ? item.expirationDate.split('T')[0] : item.expirationDate) : '',
     });
-    setShowAddForm(true);
+  };
+
+  const handleRowSave = async (id: string) => {
+    try {
+      const data = {
+        name: rowEditData.name,
+        quantity: parseFloat(rowEditData.quantity),
+        unit: rowEditData.unit,
+        expirationDate: rowEditData.expirationDate || null,
+      };
+      const response = await axios.put<PantryItem>(`/api/pantry/${id}`, data, { withCredentials: true });
+      const savedItem = response.data;
+      setItems(prev => prev.map(it => (it._id === id ? savedItem : it)));
+      setEditingRowId(null);
+    } catch (err) {
+      console.error('Failed to save row edit', err);
+    }
+  };
+
+  const handleRowCancel = () => {
+    setEditingRowId(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -144,6 +167,36 @@ const PantryPage = () => {
     return daysDiff <= 7 && daysDiff >= 0;
   };
 
+  const toggleSelectAll = () => {
+    if (selectedItems.size === items.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(items.map((i) => i._id)));
+    }
+  };
+
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleGenerateRecipe = () => {
+    if (selectedItems.size === 0) return;
+    const selectedIngredientNames = items
+      .filter((item) => selectedItems.has(item._id))
+      .map((item) => item.name.trim())
+      .join(',');
+
+    navigate('/recipes', { state: { ingredients: selectedIngredientNames } });
+  };
+
   return (
     <>
       <Header />
@@ -156,12 +209,12 @@ const PantryPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Pantry</h1>
+              <h1 className="text-3xl font-bold text-white-900">My Pantry</h1>
               <p className="text-gray-600 mt-2">Manage your pantry inventory</p>
             </div>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Item
@@ -169,7 +222,7 @@ const PantryPage = () => {
           </div>
 
           {showAddForm && (
-            <div className="bg-white rounded-lg shadow mb-8 p-6">
+            <div className="glass-panel mb-8 p-6">
               <h2 className="text-lg font-semibold mb-4">
                 {editingItem ? 'Edit Item' : 'Add New Item'}
               </h2>
@@ -261,7 +314,7 @@ const PantryPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
                   Add Item
@@ -269,61 +322,149 @@ const PantryPage = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-x-auto max-h-[65vh] overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiration</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added</th>
-                    <th scope="col" className="relative px-6 py-3">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {items.map((item) => {
-                    console.log(`Rendering item: ${item.name}, expirationDate: '${item.expirationDate}', createdAt: '${item.createdAt}'`);
-                    const expDateStr = (typeof item.expirationDate === 'string' && item.expirationDate !== '' && item.expirationDate.toLowerCase() !== 'null') 
-                      ? (item.expirationDate.includes('T') ? item.expirationDate.split('T')[0] : item.expirationDate) 
-                      : null;
-                    const createdDateStr = (typeof item.createdAt === 'string' && item.createdAt !== '') ? (item.createdAt.includes('T') ? item.createdAt.split('T')[0] : item.createdAt) : null;
+            <>
+              <div className="flex items-center mb-4 space-x-4">
+                <label className="flex items-center space-x-2 select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-primary border-gray-300 rounded"
+                    checked={items.length > 0 && selectedItems.size === items.length}
+                    onChange={toggleSelectAll}
+                  />
+                  <span className="text-sm text-gray-700">Select All</span>
+                </label>
+                <button
+                  disabled={selectedItems.size === 0}
+                  onClick={handleGenerateRecipe}
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                    selectedItems.size === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                >
+                  <Sparkle className="w-4 h-4 mr-2" />
+                  Generate Recipe
+                </button>
+              </div>
 
-                    return (
-                    <tr key={item._id} className={`${expDateStr && isExpiringSoon(expDateStr) ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{item.quantity} {item.unit}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {expDateStr ? (
-                          <div className={`text-sm ${parseLocalDate(expDateStr) < getTodayAtMidnight() ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
-                            <Calendar className={`inline-block w-4 h-4 mr-1 ${parseLocalDate(expDateStr) < getTodayAtMidnight() ? 'text-red-500' : (isExpiringSoon(expDateStr) ? 'text-yellow-500' : 'text-gray-400')}`} />
-                            {parseLocalDate(expDateStr).toLocaleDateString()}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-500">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {createdDateStr ? parseLocalDate(createdDateStr).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3">
-                          <Edit2 className="w-4 h-4 inline-block" />
-                        </button>
-                        <button onClick={() => handleDelete(item._id)} className="text-red-600 hover:text-red-900">
-                          <Trash2 className="w-4 h-4 inline-block" />
-                        </button>
-                      </td>
+              <div className="glass-panel overflow-x-auto max-h-[65vh] overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 text-primary border-gray-300 rounded"
+                          checked={items.length > 0 && selectedItems.size === items.length}
+                          onChange={toggleSelectAll}
+                          aria-label="Select all rows"
+                        />
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiration Date</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
-                  );})}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {items.map((item) => {
+                      console.log(`Rendering item: ${item.name}, expirationDate: '${item.expirationDate}', createdAt: '${item.createdAt}'`);
+                      const expDateStr = (typeof item.expirationDate === 'string' && item.expirationDate !== '' && item.expirationDate.toLowerCase() !== 'null') 
+                        ? (item.expirationDate.includes('T') ? item.expirationDate.split('T')[0] : item.expirationDate) 
+                        : null;
+
+                      return (
+                      <tr key={item._id} className={`${expDateStr && isExpiringSoon(expDateStr) ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'}`}>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 text-primary border-gray-300 rounded"
+                            checked={selectedItems.has(item._id)}
+                            onChange={() => toggleItemSelection(item._id)}
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {editingRowId === item._id ? (
+                            <input
+                              type="text"
+                              value={rowEditData.name}
+                              onChange={(e) => setRowEditData({ ...rowEditData, name: e.target.value })}
+                              className="w-full border px-2 py-1 rounded"
+                            />
+                          ) : (
+                            <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {editingRowId === item._id ? (
+                            <div className="flex space-x-2">
+                              <input
+                                type="number"
+                                value={rowEditData.quantity}
+                                onChange={(e) => setRowEditData({ ...rowEditData, quantity: e.target.value })}
+                                className="w-20 border px-2 py-1 rounded"
+                              />
+                              <select
+                                value={rowEditData.unit}
+                                onChange={(e) => setRowEditData({ ...rowEditData, unit: e.target.value })}
+                                className="border px-2 py-1 rounded"
+                              >
+                                <option value="pcs">pcs</option>
+                                <option value="lbs">lbs</option>
+                                <option value="oz">oz</option>
+                                <option value="kg">kg</option>
+                                <option value="g">g</option>
+                                <option value="cups">cups</option>
+                                <option value="tbsp">tbsp</option>
+                                <option value="tsp">tsp</option>
+                                <option value="liters">liters</option>
+                                <option value="ml">ml</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-900">{item.quantity} {item.unit}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {editingRowId === item._id ? (
+                            <input
+                              type="date"
+                              value={rowEditData.expirationDate}
+                              onChange={(e) => setRowEditData({ ...rowEditData, expirationDate: e.target.value })}
+                              className="border px-2 py-1 rounded"
+                            />
+                          ) : expDateStr ? (
+                            <div className={`text-sm ${parseLocalDate(expDateStr) < getTodayAtMidnight() ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
+                              <Calendar className={`inline-block w-4 h-4 mr-1 ${parseLocalDate(expDateStr) < getTodayAtMidnight() ? 'text-red-500' : (isExpiringSoon(expDateStr) ? 'text-yellow-500' : 'text-gray-400')}`} />
+                              {parseLocalDate(expDateStr).toLocaleDateString()}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-500">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
+                          {editingRowId === item._id ? (
+                            <>
+                              <button onClick={() => handleRowSave(item._id)} className="text-blue-600 hover:text-blue-800 inline-flex items-center">Save</button>
+                              <button onClick={handleRowCancel} className="text-gray-600 hover:text-gray-800 inline-flex items-center">Cancel</button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => handleEdit(item)} className="text-green-600 hover:text-green-800 inline-flex items-center">
+                                <Edit2 className="w-4 h-4 mr-1" /> Edit
+                              </button>
+                              <button onClick={() => handleDelete(item._id)} className="text-red-600 hover:text-red-800 inline-flex items-center">
+                                <Trash2 className="w-4 h-4 mr-1" /> Delete
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );})}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}

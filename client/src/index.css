@@ -11,6 +11,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f2f3f5 0%, #e5e7eb 100%) !important;
 }
 
 code {
@@ -139,11 +140,26 @@ code {
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+.dark body {
+  background: linear-gradient(135deg, #1e1e21 0%, #121214 100%) !important;
+}
+
+@layer utilities {
+  /* Custom backdrop blur since Tailwind filters plugin not installed */
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+}
+
+/* Base glass panel styling */
+.glass-panel {
+  @apply bg-panel shadow-mac rounded-lg border;
+  border-color: rgba(255,255,255,0.2);
+  backdrop-filter: blur(12px);
+}
+
+/* Dark-mode overrides */
+.dark .glass-panel {
+  @apply bg-panel-dark;
+  border-color: rgba(255,255,255,0.1);
 }

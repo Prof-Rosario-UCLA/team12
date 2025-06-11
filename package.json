@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "tailwindcss-filters": "^3.0.0"
+  }
+}
