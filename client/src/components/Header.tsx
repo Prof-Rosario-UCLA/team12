@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Package, ChefHat, Heart } from 'lucide-react';
+import { LogOut, Home, Package, ChefHat, Heart, Utensils } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from './ui/button';
 
@@ -10,9 +10,10 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
   const isRecipeActive = () => location.pathname.startsWith('/recipes') || location.pathname.startsWith('/favorites');
+  const isMealPlanActive = () => location.pathname.startsWith('/meal-plan');
 
   return (
-    <header className="bg-background text-foreground shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-panel/80 dark:bg-panel-dark/80 text-foreground shadow-mac border-b border-white/10 dark:border-white/5 sticky top-0 z-50 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -61,6 +62,16 @@ const Header = () => {
               }`}
             >
               <Heart className="inline-block w-4 h-4 mr-1.5 mb-0.5" aria-hidden="true" /> Favorites
+            </Link>
+            <Link
+              to="/meal-plan"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isMealPlanActive()
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <Utensils className="inline-block w-4 h-4 mr-1.5 mb-0.5" aria-hidden="true" /> Meal Plan
             </Link>
           </nav>
 

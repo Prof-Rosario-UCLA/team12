@@ -19,12 +19,21 @@ export default {
       },
     },
     extend: {
-      // Placeholder for Shadcn colors, radii, keyframes, etc.
-      // These are often added by `shadcn-ui init` or when adding components
-      // For now, we'll leave it minimal and add if specific components need them
+      fontFamily: {
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+      },
+      boxShadow: {
+        mac: '0 1px 4px rgba(0,0,0,0.12)',
+      },
+      colors: {
+        panel: 'rgba(255,255,255,0.6)',
+        'panel-dark': 'rgba(30,30,32,0.6)',
+        border: 'var(--border)',
+        ring: 'var(--ring)',
+      },
     },
   },
   plugins: [
-    tailwindcssAnimate
+    tailwindcssAnimate,
   ],
 } 

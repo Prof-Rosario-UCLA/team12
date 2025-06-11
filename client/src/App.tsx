@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import PantryPage from './pages/PantryPage';
 import RecipesPage from './pages/RecipesPage';
 import FavoritesPage from './pages/FavoritesPage';
+import MealPlanPage from './pages/MealPlanPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import { useAuth } from './context/AuthContext';
@@ -36,6 +37,7 @@ function App() {
             <Route path="/recipes" element={<RecipesPage />} />
             <Route path="/recipes/:id" element={<RecipesPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/meal-plan" element={<MealPlanPage />} />
             <Route path="/login" element={<Navigate to="/" />} />
             <Route path="/register" element={<Navigate to="/" />} />
           </Routes>

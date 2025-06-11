@@ -20,6 +20,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE_URL = '/api';
 
+axios.defaults.withCredentials = true;
+axios.defaults.xsrfCookieName = 'XSRF-TOKEN';
+axios.defaults.xsrfHeaderName = 'x-xsrf-token';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +52,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     // console.log('[AuthContext] login function called with:', username);
     try {
+      // Ensure we have up-to-date CSRF token cookie
+      await axios.get(`${API_BASE_URL}/csrf-token`);
+
       // console.log('[AuthContext] Attempting axios.post to /api/auth/login');
       const response = await axios.post<{ _id: string; username: string; token: string }>(
         `${API_BASE_URL}/auth/login`,
@@ -75,6 +82,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (username: string, password: string) => {
     try {
+      // Ensure CSRF token cookie exists
+      await axios.get(`${API_BASE_URL}/csrf-token`);
+
       await axios.post<{ _id: string; username: string; token: string }>(
         `${API_BASE_URL}/auth/register`,
         {

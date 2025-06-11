@@ -63,7 +63,11 @@ export const searchRecipesSpoonacular = async (query, ingredients, cuisine, diet
 
 export const getRecipeInformationSpoonacular = async (recipeId) => {
     try {
-        const response = await spoonacularApi.get(`/recipes/${recipeId}/information`);
+        const response = await spoonacularApi.get(`/recipes/${recipeId}/information`, {
+            params: {
+                includeNutrition: true,
+            },
+        });
         return response.data;
     } catch (error) {
         console.error(`Spoonacular API get recipe info error for ID ${recipeId}:`, error.response ? error.response.data : error.message);
@@ -79,6 +83,7 @@ export const getBulkRecipeInformationSpoonacular = async (ids) => {
         const response = await spoonacularApi.get(`/recipes/informationBulk`, {
             params: {
                 ids: ids.join(','),
+                includeNutrition: true,
             }
         });
         return response.data;
