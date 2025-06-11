@@ -16,6 +16,10 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
+    if (event.request.method === 'POST') {
+        event.respondWith(fetch(event.request));
+        return;
+    }
     event.respondWith(
         caches.match(event.request)
             .then(function(response) {
@@ -24,7 +28,7 @@ self.addEventListener('fetch', function(event) {
                 }
                 return fetch(event.request).then(
                     function(response) {
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                        if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
                             return response;
                         }
                         var responseToCache = response.clone();
