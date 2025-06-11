@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Package, ChartColumnStacked, Clock } from 'lucide-react';
 import Header from '../components/Header';
 import axios from 'axios';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNearbyStores } from '@/hooks/useNearbyStores';
 
 interface PantryItem {
   _id: string;
@@ -15,6 +17,8 @@ interface PantryItem {
 const Dashboard = () => {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { latitude, longitude, loading: geoLoading, error: geoError } = useGeolocation();
+  const { stores, loading: storesLoading, error: storesError } = useNearbyStores(latitude, longitude);
 
   useEffect(() => {
     const fetchPantryItems = async () => {
@@ -59,6 +63,10 @@ const Dashboard = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600 mt-2">Welcome back! Here's an overview of your pantry.</p>
+            {!geoLoading && !geoError && latitude !== null && longitude !== null && (
+              <p className="text-sm text-gray-500">Your location: {latitude.toFixed(4)}, {longitude.toFixed(4)}</p>
+            )}
+            {geoError && <p className="text-sm text-red-500">{geoError}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -101,14 +109,14 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mt-6">
             <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900">Items Expiring Soon</h3>
               </div>
               <div className="p-6">
                 {expiringItems.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
                     {expiringItems.slice(0, 5).map((item) => (
                       <div key={item._id} className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
                         <div>
@@ -137,6 +145,40 @@ const Dashboard = () => {
                   <p className="text-gray-500 text-center py-4">
                     No items expiring in the next week!
                   </p>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Nearby Grocery Stores</h3>
+              </div>
+              <div className="p-6">
+                {storesLoading || geoLoading ? (
+                  <p className="text-gray-500 text-center py-4">Loading...</p>
+                ) : storesError || geoError ? (
+                  <p className="text-red-500 text-center py-4">{storesError || geoError}</p>
+                ) : stores.length > 0 ? (
+                  <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {stores.map(store => (
+                      <li key={store.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <span className="text-gray-900 font-medium">{store.name}</span>
+                        <div className="text-right whitespace-nowrap">
+                          <p className="text-sm text-gray-600">{store.distance.toFixed(2)} mi</p>
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lon}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Directions
+                          </a>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No grocery stores found nearby.</p>
                 )}
               </div>
             </div>
