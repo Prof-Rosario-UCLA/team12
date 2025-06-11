@@ -27,7 +27,7 @@ app.use(cors({
 app.use((req, res, next) => {
     res.setHeader(
         "Content-Security-Policy", 
-        "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://spoonacular.com https://img.spoonacular.com; connect-src 'self' ws: wss: https://api.spoonacular.com https://generativelanguage.googleapis.com;"
+        "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://spoonacular.com https://img.spoonacular.com; connect-src 'self' ws: wss: https://api.spoonacular.com https://generativelanguage.googleapis.com https://overpass-api.de;"
     );
     next();
 });
